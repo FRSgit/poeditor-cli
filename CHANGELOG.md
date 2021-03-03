@@ -1,3 +1,10 @@
+## 1.13.1
+
+`2021-02-03`
+
+- 🌟 Fixed behavior for key_value_json
+- 🌟 Read api token from env if PO_APITOKEN is set
+
 ## 1.10.1
 
 `2019-07-03`

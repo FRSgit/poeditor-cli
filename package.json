@@ -1,16 +1,16 @@
 {
-  "name": "poeditor",
-  "version": "1.10.1",
+  "name": "poeditor-ci",
+  "version": "1.13.1",
   "description": "POEditor cli is the Standard Tooling for workflow of POEditor.",
   "main": "index.js",
   "bin": {
-    "poeditor": "./bin/index.js",
-    "poeditor.cli": "./bin/index.js"
+    "poeditor": "bin/index.js",
+    "poeditor.cli": "bin/index.js"
   },
   "scripts": {},
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/TerenYeung/poeditor-cli.git"
+    "url": "git+https://github.com/ov3rk1ll/poeditor-cli.git"
   },
   "keywords": [
     "i18n",
@@ -18,8 +18,8 @@
     "poeditor",
     "cli"
   ],
-  "author": "terenyeung@gmail.com",
-  "license": "Anti 996",
+  "author": "overkillerror@gmail.com",
+  "license": "ov3rk1ll",
   "dependencies": {
     "axios": "^0.19.0",
     "chalk": "^2.4.2",

@@ -29,6 +29,16 @@ function push() {
   }
 
   const config = require(configUrl);
+
+  if (process.env.PO_APITOKEN) {
+    config.apiToken = process.env.PO_APITOKEN;
+  }
+
+  if (!config.apiToken) {
+    console.log(chalk.red(`\n API-Token not set! Most be provided in poeditor-config.json or env as "PO_APITOKEN" ~~~\n`));
+    process.exit(0);
+  }
+
   const paths = globby.sync([config.targetDir]);
 
   spinner = ora(`${chalk.green(`Pushing file(s) to poeditor, approximately costs ${paths.length * 30}s`)}`).start();

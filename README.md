@@ -24,7 +24,7 @@ POEditor cli is the Standard Tooling for workflow of POEditor.
 If you haven't installed [Node.js](https://nodejs.org/en/), please install it first, [here](https://nodejs.org/en/).
 
 ```bash
-$ npm install poeditor -g
+$ npm install poeditor-ci -g
 ```
 
 
@@ -40,6 +40,8 @@ Create a **poeditor-config.json** in the root directory, and config information 
   "targetDir": ""                     // directory where translated files live
 }
 ```
+
+You can also provide the API token as a environment variable by setting PO_APITOKEN
 
 ## 🤜🏼 Usage
 

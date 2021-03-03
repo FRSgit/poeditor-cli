@@ -26,7 +26,7 @@ function toDownstreamFormat(content, config) {
       to: '%@'
     });
   } else if (type === 'key_value_json') {
-    modifiedContent = JSON.stringify(content);
+    modifiedContent = JSON.stringify(content, null, 2) + "\n";
   } else if (type === 'json') {
     modifiedContent = JSON.stringify(content);
   } else if (type === 'js') {
