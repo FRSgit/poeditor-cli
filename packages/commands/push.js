@@ -1,27 +1,27 @@
-const
-  utils = require('../lib/utils'),
-  chalk = require('chalk'),
-  api = require('../lib/api'),
-  querystring = require('querystring'),
-  util = require('util'),
-  fs = require('fs'),
-  ora = require('ora'),
-  globby = require('globby'),
-  promiseSeries = require('promise.series'),
-  child_process = require('child_process'),
-  transformer = require('../lib/transformer'),
-  path = require('path');
+const utils = require("../lib/utils"),
+  chalk = require("chalk"),
+  api = require("../lib/api"),
+  querystring = require("querystring"),
+  util = require("util"),
+  fs = require("fs"),
+  ora = require("ora"),
+  globby = require("globby"),
+  promiseSeries = require("promise.series"),
+  child_process = require("child_process"),
+  transformer = require("../lib/transformer"),
+  path = require("path"),
+  FormData = require("form-data");
 
 const cwd = process.cwd();
 const fileTypeMap = {
-  'apple_strings': 'strings',
-  'android_strings': 'xml',
-  'key_value_json': 'json'
-}
+  apple_strings: "strings",
+  android_strings: "xml",
+  key_value_json: "json",
+};
 let spinner = null;
 
 function push() {
-  const configUrl = path.resolve(cwd, 'poeditor-config.json');
+  const configUrl = path.resolve(cwd, "poeditor-config.json");
 
   if (!utils.isExist(configUrl)) {
     console.log(chalk.red(`\n 😭  poeditor-config.json required ~~~\n`));
@@ -35,18 +35,26 @@ function push() {
   }
 
   if (!config.apiToken) {
-    console.log(chalk.red(`\n API-Token not set! Most be provided in poeditor-config.json or env as "PO_APITOKEN" ~~~\n`));
+    console.log(
+      chalk.red(
+        `\n API-Token not set! Most be provided in poeditor-config.json or env as "PO_APITOKEN" ~~~\n`
+      )
+    );
     process.exit(0);
   }
 
   const paths = globby.sync([config.targetDir]);
 
-  spinner = ora(`${chalk.green(`Pushing file(s) to poeditor, approximately costs ${paths.length * 30}s`)}`).start();
+  spinner = ora(
+    `${chalk.green(
+      `Pushing file(s) to poeditor, approximately costs ${paths.length * 30}s`
+    )}`
+  ).start();
 
   try {
     putTermFiles(config);
-  } catch(err) {
-    console.log(err)
+  } catch (err) {
+    console.log(err);
   }
 }
 
@@ -59,62 +67,77 @@ async function putTermFiles(config) {
         func && func();
         resolve();
       }, timeout);
-    })
+    });
   };
 
   const promises = paths.map((url, index) => {
-    return function() {
+    return new Promise(async (resolve, reject) => {
       let timeout = index * 30000 + 10;
       return sleep(async () => {
-        // console.log('ext', path.parse(url).ext.);
-        // console.log('type', fileTypeMap[config.fileType]);
-
         if (path.parse(url).ext.slice(1) !== fileTypeMap[config.fileType]) {
-          console.log(chalk.red(`\n 😭  Incorrect fileType, ${fileTypeMap[config.fileType] || config.fileType} file required ~~~\n`));
+          console.log(
+            chalk.red(
+              `\n 😭  Incorrect fileType, ${
+                fileTypeMap[config.fileType] || config.fileType
+              } file required ~~~\n`
+            )
+          );
           process.exit(0);
         }
 
-        return await putTermFile({...config, file: url, language: path.parse(url).name});
+        try {
+          await putTermFile({
+            ...config,
+            file: url,
+            language: path.parse(url).name,
+          });
+          resolve(null);
+        } catch (err) {
+          console.log("reject", err.message);
+          reject(err);
+        }
       }, timeout);
-    }
-  })
-
-  promiseSeries(promises).then((res) => {
-    spinner.stop();
-    console.log(`🥝  ${chalk.cyan(`All file(s) uploaded ~~~`)}`);
-  }).catch(err => {
-    console.log(chalk.red(`\n 😭  Error occurs at ${err} ~~~\n`));
+    });
   });
+
+  Promise.all(promises)
+    .then((res) => {
+      spinner.stop();
+      console.log(`🥝  ${chalk.cyan(`All file(s) uploaded ~~~`)}`);
+    })
+    .catch((err) => {
+      spinner.stop();
+      console.log(chalk.red(`\n 😭  Error occurred ${err.message} ~~~\n`));
+      process.exit(1);
+    });
 }
 
 async function putTermFile(config) {
-  // 需要为不同类型的翻译文件生成统一的上传占位符的临时文件再上传；
+  var formData = new FormData();
+  formData.append("api_token", config.apiToken);
+  formData.append("id", config.projectId);
+  formData.append("language", config.language);
+  formData.append("updating", "terms_translations");
+  formData.append("file", fs.createReadStream(config.file));
+  formData.append("overwrite", "1");
 
-  let tempContent = fs.readFileSync(config.file).toString('utf8');
-  let parseObj = path.parse(config.file);
-  let tempUrl = `${parseObj.dir}/${parseObj.name}-temp${parseObj.ext}`;
+  const res = await api.post("/projects/upload", formData, {
+    headers: {
+      "Content-Type": `multipart/form-data; boundary=${formData._boundary}`,
+    },
+  });
 
-  fs.writeFileSync(tempUrl, transformer.toUpstreamFormat(tempContent, {
-    type: config.fileType
-  }));
-  console.log('template', tempContent)
-  return
+  if (res.data.response.code === "200") {
+    console.log(`🥝  Uploaded ${config.file} for ${config.language} completed`);
+    return null;
+  }
 
-  const res = child_process.execSync(`
-  curl -X POST https://api.poeditor.com/v2/projects/upload \
-    -F api_token=${config.apiToken} \
-    -F id=${config.projectId} \
-    -F updating="terms_translations" \
-    -F file=@"${tempUrl}" \
-    -F language="${config.language}" \
-    -F overwrite="1" -s`);
+  let message = "";
+  if (res.data && res.data.response) {
+    message = `${res.data.response.code} ${res.data.response.message}`;
+  }
 
-  // 删除临时文件
-  fs.unlinkSync(curPath);
-
-  return JSON.parse(res.toString());
+  throw new Error(message);
 }
-
-
 
 module.exports = push;
