@@ -10,7 +10,7 @@
 
 POEditor cli is the Standard Tooling for workflow of POEditor.
 
- ![language](https://img.shields.io/badge/language-node-gcf.svg) [![npm package](https://img.shields.io/npm/v/poeditor.svg?style=flat-square)](https://www.npmjs.com/package/poeditor) [![NPM downloads](http://img.shields.io/npm/dm/poeditor.svg?style=flat-square)](https://www.npmjs.com/package/poeditor) ![license](https://img.shields.io/badge/license-Anti%20996-99ccff.svg)
+ ![language](https://img.shields.io/badge/language-node-gcf.svg?style=flat-square) [![npm package](https://img.shields.io/npm/v/poeditor-ci.svg?style=flat-square)](https://www.npmjs.com/package/poeditor-ci) [![NPM downloads](http://img.shields.io/npm/dm/poeditor-ci.svg?style=flat-square)](https://www.npmjs.com/package/poeditor-ci)
 
 </div>
 
